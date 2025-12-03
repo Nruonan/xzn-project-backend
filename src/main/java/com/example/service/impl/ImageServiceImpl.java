@@ -3,8 +3,10 @@ package com.example.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.dao.AccountDO;
+import com.example.entity.dao.ActivityDO;
 import com.example.entity.dao.ImageDO;
 import com.example.mapper.AccountMapper;
+import com.example.mapper.ActivityMapper;
 import com.example.mapper.ImageMapper;
 import com.example.service.ImageService;
 import com.example.utils.Const;
@@ -37,7 +39,8 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, ImageDO> implemen
 
     @Resource
     AccountMapper mapper;
-
+    @Resource
+    ActivityMapper activityMapper;
     @Resource
     FlowUtils flowUtils;
 
@@ -111,5 +114,38 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, ImageDO> implemen
             .object(avatar)
             .build();
         client.removeObject(remove);
+    }
+
+    private void deleteOldActivity(String activity) throws Exception {
+        if(activity == null || activity.isEmpty()) return;
+        RemoveObjectArgs remove = RemoveObjectArgs.builder()
+            .bucket("study")
+            .object(activity)
+            .build();
+        client.removeObject(remove);
+    }
+    @Override
+    public String uploadActivity(MultipartFile file, int id) throws IOException {
+        String imageName = UUID.randomUUID().toString().replace("-", "");
+        imageName = "/activity/" + imageName;
+        PutObjectArgs args = PutObjectArgs.builder()
+            .bucket("study")
+            .stream(file.getInputStream(), file.getSize(), -1)
+            .object(imageName)
+            .build();
+        try {
+            client.putObject(args);
+            ActivityDO activityDO = activityMapper.selectById(id);
+            String activity = activityDO.getPicture();
+            this.deleteOldActivity(activity);
+            if(activityMapper.update(null, Wrappers.<ActivityDO>update()
+                .eq("id", id).set("picture", imageName)) > 0) {
+                return imageName;
+            } else
+                return null;
+        } catch (Exception e) {
+            log.error("图片上传出现问题: "+ e.getMessage(), e);
+            return null;
+        }
     }
 }

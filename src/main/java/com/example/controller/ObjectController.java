@@ -4,14 +4,15 @@ import com.example.entity.RestBean;
 import com.example.entity.dto.resp.BrowserRespDTO;
 import com.example.service.ImageService;
 import com.example.utils.CommonUtils;
+import com.example.utils.Const;
 import io.minio.errors.ErrorResponseException;
 import jakarta.annotation.Resource;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Nruonan
@@ -36,6 +37,31 @@ public class ObjectController {
         String browser = CommonUtils.getBrowser((HttpServletRequest) request);
         String ip = CommonUtils.getActualIp((HttpServletRequest) request);
         return RestBean.success(new BrowserRespDTO(ip,browser));
+    }
+
+    /**
+     * 上传活动图片
+     * @param file 图片文件
+     * @return 图片URL
+     */
+    @PostMapping("/api/activity/upload-image")
+    public RestBean<String> uploadActivityImage(@RequestParam("file") MultipartFile file,
+                                                @RequestAttribute(Const.ATTR_USER_ID) int id) {
+        try {
+            if(file.getSize() > 1024 * 100 * 5)
+                return RestBean.failure(400, "活动图片不能大于5MB");
+            log.info("正在进行活动图片上传操作...");
+            String url = service.uploadImage(file, id);
+            if(url != null) {
+                log.info("活动图片上传成功，大小: " + file.getSize());
+                return RestBean.success(url);
+            } else {
+                return RestBean.failure(400, "活动图片上传失败，请联系管理员！");
+            }
+        } catch (Exception e) {
+            log.error("活动图片上传失败: " + e.getMessage(), e);
+            return RestBean.failure(400, "活动图片上传失败，请联系管理员！");
+        }
     }
 
     private void fetchImage(HttpServletRequest request, HttpServletResponse response) throws Exception {

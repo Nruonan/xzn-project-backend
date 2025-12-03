@@ -1,4 +1,5 @@
 package com.example.controller.admin;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson2.JSONObject;
@@ -6,15 +7,25 @@ import com.example.entity.RestBean;
 import com.example.entity.dao.AccountDO;
 import com.example.entity.dao.AccountDetailsDO;
 import com.example.entity.dao.AccountPrivacyDO;
+import com.example.entity.dao.TicketOrderDO;
 import com.example.entity.dto.resp.AccountDetailsRespDTO;
 import com.example.entity.dto.resp.AccountInfoRespDTO;
 import com.example.entity.dto.resp.AccountPrivacyRespDTO;
 import com.example.entity.dto.resp.AccountRespDTO;
+import com.example.entity.dto.resp.StatisticsRespDTO;
+import com.example.service.ActivityService;
+import com.example.service.NoticeService;
+import com.example.service.TopicCommentService;
+import com.example.service.TopicService;
+import com.example.service.TicketOrderService;
 import com.example.service.AccountDetailsService;
 import com.example.service.AccountPrivacyService;
 import com.example.service.AccountService;
 import com.example.utils.Const;
 import jakarta.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +53,21 @@ public class AccountAdminController {
     AccountPrivacyService privacyService;
 
     @Resource
+    TopicService topicService;
+
+    @Resource
+    TopicCommentService topicCommentService;
+
+    @Resource
+    TicketOrderService ticketOrderService;
+
+    @Resource
+    NoticeService noticeService;
+
+    @Resource
+    ActivityService activityService;
+
+    @Resource
     StringRedisTemplate stringRedisTemplate;
 
     @Value("${spring.security.jwt.expire}")
@@ -49,7 +75,7 @@ public class AccountAdminController {
     /**
      * 获取账户列表信息
      * 该方法通过GET请求处理账户列表的请求，根据指定的页码和页面大小进行分页查询
-     * 
+     *
      * @param page 页码，从0开始
      * @param size 页面大小，表示每页返回的记录数
      * @return 返回包含账户列表和总记录数的RestBean对象
@@ -58,19 +84,19 @@ public class AccountAdminController {
     public RestBean<JSONObject> accountList(int page, int size){
         // 创建一个空的JSONObject对象，用于存储查询结果
         JSONObject object = new JSONObject();
-    
+
         // 调用service的page方法进行分页查询，并将查询结果转换为AccountRespDTO对象列表
         List<AccountInfoRespDTO> list = service.page(Page.of(page, size))
             .getRecords()
             .stream()
             .map(a -> BeanUtil.toBean(a, AccountInfoRespDTO.class))
             .toList();
-    
+
         // 将总记录数放入JSONObject中
         object.put("total", service.count());
         // 将转换后的账户列表放入JSONObject中
         object.put("list", list);
-    
+
         // 返回包含查询结果的RestBean对象，表示操作成功
         return RestBean.success(object);
     }
@@ -108,7 +134,7 @@ public class AccountAdminController {
         AccountDO bean = BeanUtil.toBean(account, AccountDO.class);
         // 保存或更新账户信息
         service.saveOrUpdate(bean);
-        
+
         // 获取账户详细信息
         AccountDetailsRespDTO details = detailsService.findAccountDetailsById(id);
         // 将请求体中的账户详细信息复制到一个新的AccountDetailsRespDTO对象中
@@ -117,7 +143,7 @@ public class AccountAdminController {
         BeanUtil.copyProperties(saveDetails, details);
         // 保存或更新账户详细信息
         detailsService.saveOrUpdate(BeanUtil.toBean(details, AccountDetailsDO.class));
-        
+
         // 获取账户隐私设置
         AccountPrivacyRespDTO privacy = privacyService.accountPrivacy(id);
         // 将请求体中的账户隐私设置复制到一个新的AccountPrivacyRespDTO对象中
@@ -128,28 +154,71 @@ public class AccountAdminController {
         AccountPrivacyDO bean1 = BeanUtil.toBean(privacy, AccountPrivacyDO.class);
         // 保存或更新账户隐私设置
         privacyService.saveOrUpdate(bean1);
-        
+
         // 返回操作成功响应
         return RestBean.success();
+    }
+
+    /**
+     * 获取管理员统计数据
+     * 该方法通过GET请求处理管理员统计数据的请求，包括用户总数、主题总数、评论总数等
+     *
+     * @return 返回包含各种统计数据的RestBean对象
+     */
+    @GetMapping("/statistics")
+    public RestBean<StatisticsRespDTO> getStatistics() {
+        StatisticsRespDTO statistics = new StatisticsRespDTO();
+
+        // 用户总数
+        statistics.setUserCount(service.count());
+
+        // 主题总数
+        statistics.setTopicCount(topicService.count());
+
+        // 评论总数
+        statistics.setCommentCount(topicCommentService.count());
+
+        // 工单总数（所有票务订单）
+        statistics.setTicketCount(ticketOrderService.count());
+
+        // 订单总数（已支付的票务订单）
+        QueryWrapper<TicketOrderDO> paidOrderWrapper = new QueryWrapper<>();
+        paidOrderWrapper.eq("pay", true);
+        statistics.setOrderCount(ticketOrderService.count(paidOrderWrapper));
+
+        // 公告总数
+        statistics.setNoticeCount(noticeService.count());
+
+        // 活动总数
+        statistics.setActivityCount(activityService.count());
+
+        // 今日注册用户数
+        LocalDateTime todayStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+        LocalDateTime todayEnd = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+        QueryWrapper<AccountDO> queryWrapper = new QueryWrapper<>();
+        queryWrapper.between("register_time", todayStart, todayEnd);
+        statistics.setTodayRegisterCount(service.count(queryWrapper));
+
+        return RestBean.success(statistics);
     }
 
     /**
      * 处理用户封禁状态的变化
      * 当用户从非封禁状态变为封禁状态时，记录封禁信息到Redis，并设置过期时间
      * 当用户从封禁状态变为非封禁状态时，从Redis中删除封禁信息
-     * 
+     *
      * @param old  用户的原始账户信息，用于判断用户之前的封禁状态
      * @param current  用户的当前账户信息，用于判断用户当前的封禁状态
      */
     private void handleBanned(AccountInfoRespDTO old, AccountInfoRespDTO current){
         // 构造Redis键，用于存储或删除封禁信息
         String key = Const.BANNED_BLOCK + old.getId();
-        
+
         // 如果用户从非封禁状态变为封禁状态
         if (!old.isBanned() && current.isBanned()){
             // 在Redis中设置封禁信息，有效期为指定小时数
             stringRedisTemplate.opsForValue().set(key, "true", expire, TimeUnit.HOURS);
-        // 如果用户从封禁状态变为非封禁状态
+            // 如果用户从封禁状态变为非封禁状态
         }else if(old.isBanned() && !current.isBanned()){
             // 从Redis中删除封禁信息
             stringRedisTemplate.delete(key);

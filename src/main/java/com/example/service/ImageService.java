@@ -16,4 +16,6 @@ public interface ImageService extends IService<ImageDO> {
     void fetchImageFromMinio(OutputStream stream, String image) throws Exception;
 
     String uploadImage(MultipartFile file, int id) throws IOException;
+
+    String uploadActivity(MultipartFile file, int id) throws IOException;
 }
