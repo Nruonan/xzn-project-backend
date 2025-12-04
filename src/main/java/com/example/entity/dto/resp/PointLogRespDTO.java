@@ -27,7 +27,7 @@ public class PointLogRespDTO {
     private String username;
     
     /**
-     * 类型: exchange(兑换), post(发帖), sign(签到)
+     * 类型: exchange(兑换), post(发帖), interact
      */
     private String type;
     

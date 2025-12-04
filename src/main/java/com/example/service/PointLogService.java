@@ -22,6 +22,16 @@ public interface PointLogService extends IService<PointLogDO> {
     Page<PointLogRespDTO> getLogList(int pageNum, int pageSize, String type, String username);
     
     /**
+     * 获取指定用户的积分日志列表（分页）
+     * @param pageNum 页码
+     * @param pageSize 每页大小
+     * @param type 类型（可选）
+     * @param uid 用户ID
+     * @return 分页结果
+     */
+    Page<PointLogRespDTO> getUserLogList(int pageNum, int pageSize, Integer type, Integer uid);
+    
+    /**
      * 记录积分变动
      * @param uid 用户ID
      * @param type 类型
@@ -31,4 +41,27 @@ public interface PointLogService extends IService<PointLogDO> {
      * @return 是否成功
      */
     boolean recordPointChange(Integer uid, String type, Integer score, String refId, String remark);
+
+    Integer getUserPoint(Integer uid);
+    
+    /**
+     * 获取用户今天获得的积分数量
+     * @param uid 用户ID
+     * @return 获得的积分数量
+     */
+    Integer getTodayEarnedPoints(Integer uid);
+    
+    /**
+     * 获取用户本月获得的积分数量
+     * @param uid 用户ID
+     * @return 获得的积分数量
+     */
+    Integer getMonthEarnedPoints(Integer uid);
+    
+    /**
+     * 获取用户累计消费的积分数量
+     * @param uid 用户ID
+     * @return 消费的积分数量
+     */
+    Integer getTotalConsumedPoints(Integer uid);
 }

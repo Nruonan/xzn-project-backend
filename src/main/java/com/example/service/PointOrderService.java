@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.entity.dao.PointOrderDO;
 import com.example.entity.dto.req.PointOrderCreateReqDTO;
 import com.example.entity.dto.resp.PointOrderRespDTO;
+import java.util.Date;
 
 /**
  * 积分订单Service接口
@@ -18,7 +19,7 @@ public interface PointOrderService extends IService<PointOrderDO> {
      * @param uid 用户ID
      * @return 是否成功
      */
-    boolean createOrder(PointOrderCreateReqDTO reqDTO, Long uid);
+    boolean createOrder(PointOrderCreateReqDTO reqDTO, Integer uid);
     
     /**
      * 更新订单状态
@@ -37,6 +38,16 @@ public interface PointOrderService extends IService<PointOrderDO> {
      * @return 分页结果
      */
     Page<PointOrderRespDTO> getOrderList(int pageNum, int pageSize, Integer status, String username);
+    
+    /**
+     * 获取指定用户的积分订单列表（分页）
+     * @param pageNum 页码
+     * @param pageSize 每页大小
+     * @param status 订单状态（可选）
+     * @param uid 用户ID
+     * @return 分页结果
+     */
+    Page<PointOrderRespDTO> getUserOrderList(int pageNum, int pageSize, Integer status, Date startTime, Date endTime, Integer uid);
     
     /**
      * 获取积分订单详情

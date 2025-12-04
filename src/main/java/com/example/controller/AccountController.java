@@ -10,10 +10,12 @@ import com.example.entity.dto.resp.AccountDetailsRespDTO;
 import com.example.entity.dto.resp.AccountInfoRespDTO;
 import com.example.entity.dto.resp.AccountPrivacyRespDTO;
 import com.example.entity.dto.resp.AccountRespDTO;
+import com.example.entity.dto.resp.PointStatisticsRespDTO;
 import com.example.entity.dto.resp.UserDetailsRespDTO;
 import com.example.service.AccountDetailsService;
 import com.example.service.AccountPrivacyService;
 import com.example.service.AccountService;
+import com.example.service.PointLogService;
 import com.example.utils.Const;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
@@ -44,6 +46,9 @@ public class AccountController {
 
     @Resource
     AccountPrivacyService accountPrivacyService;
+
+    @Resource
+    PointLogService pointLogService;
     @GetMapping("/info")
     public RestBean<AccountInfoRespDTO> findAccountById(){
 
@@ -92,5 +97,27 @@ public class AccountController {
     @GetMapping("/detail")
     public RestBean<UserDetailsRespDTO> getDetailById(@RequestParam("id") int id,@RequestAttribute(Const.ATTR_USER_ID)int uid){
         return RestBean.success(accountService.getDetailById(id,uid));
+    }
+
+    @GetMapping("/point-statistics")
+    public RestBean<PointStatisticsRespDTO> getPointStatistics() {
+        // 获取当前用户ID
+        Integer uid = UserContext.getUserId();
+        
+        // 创建响应对象
+        PointStatisticsRespDTO statistics = new PointStatisticsRespDTO();
+        // 获取用户当前积分
+        statistics.setCurrentPoints(pointLogService.getUserPoint(uid));
+        
+        // 获取今天获得的积分
+        statistics.setTodayEarnedPoints(pointLogService.getTodayEarnedPoints(uid));
+        
+        // 获取本月获得的积分
+        statistics.setMonthEarnedPoints(pointLogService.getMonthEarnedPoints(uid));
+        
+        // 获取累计消费的积分
+        statistics.setTotalConsumedPoints(pointLogService.getTotalConsumedPoints(uid));
+        
+        return RestBean.success(statistics);
     }
 }

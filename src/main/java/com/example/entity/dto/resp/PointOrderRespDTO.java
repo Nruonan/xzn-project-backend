@@ -64,7 +64,7 @@ public class PointOrderRespDTO {
      * 状态描述
      */
     private String statusDesc;
-    
+    private String image;
     /**
      * 创建时间
      */
