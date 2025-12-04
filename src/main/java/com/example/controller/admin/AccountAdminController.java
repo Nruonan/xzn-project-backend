@@ -13,8 +13,11 @@ import com.example.entity.dto.resp.AccountInfoRespDTO;
 import com.example.entity.dto.resp.AccountPrivacyRespDTO;
 import com.example.entity.dto.resp.AccountRespDTO;
 import com.example.entity.dto.resp.StatisticsRespDTO;
+import com.example.mapper.PointRuleMapper;
 import com.example.service.ActivityService;
 import com.example.service.NoticeService;
+import com.example.service.PointOrderService;
+import com.example.service.PointProductService;
 import com.example.service.TopicCommentService;
 import com.example.service.TopicService;
 import com.example.service.TicketOrderService;
@@ -59,13 +62,19 @@ public class AccountAdminController {
     TopicCommentService topicCommentService;
 
     @Resource
-    TicketOrderService ticketOrderService;
+    PointOrderService pointOrderService;
+
+    @Resource
+    PointProductService pointProductService;
+
 
     @Resource
     NoticeService noticeService;
 
     @Resource
     ActivityService activityService;
+    @Resource
+    PointRuleMapper pointRuleMapper;
 
     @Resource
     StringRedisTemplate stringRedisTemplate;
@@ -178,19 +187,19 @@ public class AccountAdminController {
         // 评论总数
         statistics.setCommentCount(topicCommentService.count());
 
-        // 工单总数（所有票务订单）
-        statistics.setTicketCount(ticketOrderService.count());
+        // 工单总数
+        statistics.setProductCount(pointProductService.count());
 
-        // 订单总数（已支付的票务订单）
-        QueryWrapper<TicketOrderDO> paidOrderWrapper = new QueryWrapper<>();
-        paidOrderWrapper.eq("pay", true);
-        statistics.setOrderCount(ticketOrderService.count(paidOrderWrapper));
+        // 订单总数
+        statistics.setOrderCount(pointOrderService.count());
 
         // 公告总数
         statistics.setNoticeCount(noticeService.count());
 
         // 活动总数
         statistics.setActivityCount(activityService.count());
+        // 积分规则
+        statistics.setRuleCount(pointRuleMapper.selectList(null).size());
 
         // 今日注册用户数
         LocalDateTime todayStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);

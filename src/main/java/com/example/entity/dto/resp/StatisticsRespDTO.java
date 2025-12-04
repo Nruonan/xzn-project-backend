@@ -26,7 +26,7 @@ public class StatisticsRespDTO {
     /**
      * 工单总数
      */
-    private Long ticketCount;
+    private Long productCount;
     
     /**
      * 订单总数
@@ -47,4 +47,9 @@ public class StatisticsRespDTO {
      * 今日注册用户数
      */
     private Long todayRegisterCount;
+
+    /**
+     * 积分规则总数
+     */
+    private Integer ruleCount;
 }
