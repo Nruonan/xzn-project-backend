@@ -30,4 +30,5 @@ public class AccountDetailsDO {
     private String wx;
     @TableField("`desc`")
     private String desc;
+    private Integer score;
 }

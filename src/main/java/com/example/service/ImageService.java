@@ -18,4 +18,6 @@ public interface ImageService extends IService<ImageDO> {
     String uploadImage(MultipartFile file, int id) throws IOException;
 
     String uploadActivity(MultipartFile file, int id) throws IOException;
+
+    String uploadProduct(MultipartFile file, int id) throws IOException;
 }

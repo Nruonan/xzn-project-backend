@@ -68,4 +68,18 @@ public class ImageController {
             return RestBean.failure(400, "活动图片上传失败，请联系管理员！");
         }
     }
+    @PostMapping("/product")
+    public RestBean<String> uploadProduct(@RequestParam("file") MultipartFile file,
+        @RequestParam("id") int id) throws IOException {
+        if(file.getSize() > 1024 * 1000)
+            return RestBean.failure(400, "积分商品图片不能大于1000KB");
+        log.info("正在进行积分商品图片上传操作...");
+        String url = service.uploadProduct(file, id);
+        if(url != null) {
+            log.info("积分商品图片上传成功，大小: " + file.getSize());
+            return RestBean.success(url);
+        } else {
+            return RestBean.failure(400, "积分商品图片上传失败，请联系管理员！");
+        }
+    }
 }

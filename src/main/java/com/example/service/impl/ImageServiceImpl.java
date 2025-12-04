@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.dao.AccountDO;
 import com.example.entity.dao.ActivityDO;
 import com.example.entity.dao.ImageDO;
+import com.example.entity.dao.PointProductDO;
 import com.example.mapper.AccountMapper;
 import com.example.mapper.ActivityMapper;
 import com.example.mapper.ImageMapper;
+import com.example.mapper.PointProductMapper;
 import com.example.service.ImageService;
 import com.example.utils.Const;
 import com.example.utils.FlowUtils;
@@ -43,7 +45,9 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, ImageDO> implemen
     ActivityMapper activityMapper;
     @Resource
     FlowUtils flowUtils;
-
+    @Resource
+    PointProductMapper pointProductMapper;
+    
     SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
 
     @Override
@@ -124,6 +128,14 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, ImageDO> implemen
             .build();
         client.removeObject(remove);
     }
+    private void deleteOldProduct(String product) throws Exception {
+        if(product == null || product.isEmpty()) return;
+        RemoveObjectArgs remove = RemoveObjectArgs.builder()
+            .bucket("study")
+            .object(product)
+            .build();
+        client.removeObject(remove);
+    }
     @Override
     public String uploadActivity(MultipartFile file, int id) throws IOException {
         String imageName = UUID.randomUUID().toString().replace("-", "");
@@ -140,6 +152,31 @@ public class ImageServiceImpl extends ServiceImpl<ImageMapper, ImageDO> implemen
             this.deleteOldActivity(activity);
             if(activityMapper.update(null, Wrappers.<ActivityDO>update()
                 .eq("id", id).set("picture", imageName)) > 0) {
+                return imageName;
+            } else
+                return null;
+        } catch (Exception e) {
+            log.error("图片上传出现问题: "+ e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public String uploadProduct(MultipartFile file, int id) throws IOException {
+        String imageName = UUID.randomUUID().toString().replace("-", "");
+        imageName = "/product/" + imageName;
+        PutObjectArgs args = PutObjectArgs.builder()
+            .bucket("study")
+            .stream(file.getInputStream(), file.getSize(), -1)
+            .object(imageName)
+            .build();
+        try {
+            client.putObject(args);
+            PointProductDO productDO = pointProductMapper.selectById(id);
+            String product = productDO.getImage();
+            this.deleteOldProduct(product);
+            if(pointProductMapper.update(null, Wrappers.<PointProductDO>update()
+                .eq("id", id).set("image", imageName)) > 0) {
                 return imageName;
             } else
                 return null;
