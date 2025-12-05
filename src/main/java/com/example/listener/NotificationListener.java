@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.example.entity.dao.AccountDO;
 import com.example.entity.dao.AccountPrivacyDO;
-import com.example.entity.dao.TicketDO;
 import com.example.entity.dao.TopicCommentDO;
 import com.example.entity.dao.TopicDO;
 import com.example.entity.dto.req.AddCommentReqDTO;
@@ -39,17 +38,7 @@ public class NotificationListener {
 
     @Resource
     NotificationService notificationService;
-    @RabbitListener(queues = "notificationTicket")
-    @RabbitHandler
-    public void sendMessage(String  s) {
-        TicketDO ticketDO = JSONObject.parseObject(s, TicketDO.class);
-        List<AccountPrivacyDO> accountList = privacyMapper.selectList(Wrappers.<AccountPrivacyDO>query().eq("remind", 1));
-        for (AccountPrivacyDO account : accountList){
-            notificationService.addNotification(account.getId(),"您有新的神券预约提醒",
-                ticketDO.getName() +" " +ticketDO.getDesc() +"，快去看看吧！","success",
-                "/index/market/ticket-order/" + ticketDO.getId());
-        }
-    }
+
 
     @RabbitListener(queues = "notificationComment")
     @RabbitHandler
