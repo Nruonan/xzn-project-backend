@@ -19,6 +19,7 @@ import com.example.entity.dao.TopicCommentDO;
 import com.example.entity.dao.TopicDO;
 import com.example.entity.dto.req.AddCommentReqDTO;
 import com.example.entity.dto.req.TopicCreateReqDTO;
+import com.example.entity.dto.req.TopicSearchReqDTO;
 import com.example.entity.dto.req.TopicUpdateReqDTO;
 import com.example.entity.dto.resp.CommentRespDTO;
 import com.example.entity.dto.resp.CommentRespDTO.User;
@@ -131,9 +132,6 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicDO> implemen
     @Override
     @PointOperation(value = "post", idParam = "requestParam", checkBefore = true)
     public Integer createTopic(TopicCreateReqDTO requestParam, int uid) {
-        if (!this.textLimitCheck(requestParam.getContent(),20000)) {
-            throw new ServiceException("文章内容太多，发文失败！");
-        }
         if (!types.contains(requestParam.getType())) {
             throw new ServiceException("文章类型非法");
         }
@@ -166,9 +164,6 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicDO> implemen
     }
     @Override
     public String updateTopic(TopicUpdateReqDTO requestParam, int uid) {
-        if (!this.textLimitCheck(requestParam.getContent(),20000)) {
-            return "文章内容太多，发文失败！";
-        }
         if (!types.contains(requestParam.getType())) {
             return "文章类型非法";
         }
@@ -655,6 +650,47 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicDO> implemen
         return hotTopicRespDTOS;
     }
 
+    @Override
+    public List<TopicPreviewRespDTO> searchTopicsByTitle(TopicSearchReqDTO searchReq) {
+        Integer page = searchReq.getPage();
+        Integer size = searchReq.getSize();
+        String keyword = searchReq.getKeyword();
+        if (page == null) page = 1;
+        if (size == null) size = 10;
+        if (keyword.isEmpty()){
+            keyword = "";
+        }
+
+        // 构造缓存key
+        String cacheKey = Const.FORUM_TOPIC_SEARCH_CACHE + keyword + ":" + page + ":" + size;
+
+        // 尝试从缓存中获取结果
+        List<TopicPreviewRespDTO> cachedResult = cacheUtils.takeListFormCache(cacheKey, TopicPreviewRespDTO.class);
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+
+        Page<TopicDO> pageDO = Page.of(page,size);
+        LambdaQueryWrapper<TopicDO> queryWrapper = Wrappers.lambdaQuery(TopicDO.class)
+            .like(TopicDO::getTitle, keyword)
+            .eq(TopicDO::getStatus, 1)
+            .orderByDesc(TopicDO::getTime); // 按时间升序排序
+        topicMapper.selectPage(pageDO, queryWrapper);
+        if (pageDO.getRecords().isEmpty()) {
+            // 空结果也缓存，防止缓存穿透
+            cacheUtils.saveListToCache(cacheKey, Collections.emptyList(), 60);
+            return Collections.emptyList();
+        }
+        List<TopicPreviewRespDTO> topicPreviewRespDTOS = new ArrayList<>();
+        for (TopicDO record : pageDO.getRecords()) {
+            TopicPreviewRespDTO topicPreviewRespDTO = resolveToPreview(record);
+            topicPreviewRespDTOS.add(topicPreviewRespDTO);
+        }
+
+        // 存储到缓存中，有效期60秒
+        cacheUtils.saveListToCache(cacheKey, topicPreviewRespDTOS, 1800);
+        return topicPreviewRespDTOS;
+    }
     @Override
     public Page<TopicDO> listDraftsByUid(int uid, int page,  int size) {
         Page<TopicDO> pageDO = Page.of(page,size);

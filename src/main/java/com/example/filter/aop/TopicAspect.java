@@ -1,5 +1,6 @@
 package com.example.filter.aop;
 
+import com.example.controller.exception.ServiceException;
 import com.example.entity.dto.req.AddCommentReqDTO;
 import com.example.entity.dto.req.TopicCreateReqDTO;
 import com.example.entity.dto.req.TopicUpdateReqDTO;
@@ -39,15 +40,20 @@ public class TopicAspect {
     public Object auditTopicContent(ProceedingJoinPoint joinPoint)throws Throwable{
         Object[] args = joinPoint.getArgs();
         TopicCreateReqDTO requestParam = (TopicCreateReqDTO) args[0]; // 获取请求参数
-        Integer id = (Integer) args[1];
+        Integer id;
+        if (args[1] instanceof String) {
+            id = Integer.parseInt((String) args[1]);
+        } else {
+            id = (Integer) args[1];
+        }
         String key = Const.FORUM_TOPIC_CREATE_COUNTER + id;
         if (!flowUtils.limitPeriodCounterCheck(key, 3, 3600)){
-            return "发文频繁,请稍后再试";
+            throw new ServiceException("发文频繁,请稍后再试");
         }
         // 实现审核逻辑
-        if (isContentValid(String.valueOf(requestParam.getContent())) || isContentValid(requestParam.getTitle())) {
-            return "帖子内容包含敏感词，无法发布";
-        }
+//        if (isContentValid(String.valueOf(requestParam.getContent())) || isContentValid(requestParam.getTitle())) {
+//            throw new ServiceException("帖子内容包含敏感词，无法发布");
+//        }
 
         // 继续执行原始方法
         return joinPoint.proceed();
@@ -59,15 +65,15 @@ public class TopicAspect {
         Integer id = (Integer) args[1];
         String s = stringRedisTemplate.opsForValue().get("xzn:topic:ban" + id);
         if (s != null && Integer.parseInt(s) >= 2) {
-            return "修改频繁,请稍后再试";
+            throw new ServiceException("修改频繁,请稍后再试");
+        }
+        if (!flowUtils.limitPeriodCounterCheck("xzn:topic:ban"+id, 2, 3600)){
+            throw new ServiceException("修改频繁,请稍后再试");
         }
         // 实现审核逻辑
-        if (isContentValid(String.valueOf(requestParam.getContent())) || isContentValid(requestParam.getTitle())) {
-            if (!flowUtils.limitPeriodCounterCheck("xzn:topic:ban"+id, 2, 3600)){
-                return "修改频繁,请稍后再试";
-            }
-            return "帖子内容包含敏感词，无法发布";
-        }
+//        if (isContentValid(String.valueOf(requestParam.getContent())) || isContentValid(requestParam.getTitle())) {
+//            throw new ServiceException("帖子内容包含敏感词，无法发布");
+//        }
 
         // 继续执行原始方法
         return joinPoint.proceed();
@@ -78,16 +84,14 @@ public class TopicAspect {
         AddCommentReqDTO requestParam = (AddCommentReqDTO) args[1]; // 获取请求参数
         Integer id = (Integer) args[0];
         String s = stringRedisTemplate.opsForValue().get("xzn:comment:ban" + id);
-        if (s != null && Integer.parseInt(s) >= 2) {
-            return "修改频繁,请稍后再试";
+
+        if (!flowUtils.limitPeriodCounterCheck("xzn:comment:ban"+id, 2, 1800)){
+            throw new ServiceException("评论频繁,请稍后再试");
         }
         // 实现审核逻辑
-        if (isContentValid(String.valueOf(requestParam.getContent()))) {
-            if (!flowUtils.limitPeriodCounterCheck("xzn:comment:ban"+id, 2, 1800)){
-                return "评论频繁,请稍后再试";
-            }
-            return "评论内容包含敏感词，无法发布";
-        }
+//        if (isContentValid(String.valueOf(requestParam.getContent()))) {
+//            throw new ServiceException("评论内容包含敏感词，无法发布");
+//        }
         // 继续执行原始方法
         return joinPoint.proceed();
     }

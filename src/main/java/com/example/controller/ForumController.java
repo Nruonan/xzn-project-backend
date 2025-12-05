@@ -9,6 +9,7 @@ import com.example.entity.dao.TopicDO;
 import com.example.entity.dao.WeatherDO;
 import com.example.entity.dto.req.AddCommentReqDTO;
 import com.example.entity.dto.req.TopicCreateReqDTO;
+import com.example.entity.dto.req.TopicSearchReqDTO;
 import com.example.entity.dto.req.TopicUpdateReqDTO;
 import com.example.entity.dto.resp.AccountInfoRespDTO;
 import com.example.entity.dto.resp.CommentRespDTO;
@@ -78,7 +79,7 @@ public class ForumController {
             return RestBean.failure(400, "您的账户已被禁言，无法发布新的主题!");
         }
         try {
-            topicService.createTopic(requestParam, id);
+            Integer topic = topicService.createTopic(requestParam, id);
         } catch (ServiceException e) {
             return RestBean.failure(400, e.getMessage());
         }
@@ -123,8 +124,12 @@ public class ForumController {
     @PostMapping("/update-topic")
     public RestBean<Void> updateTopic(@Valid @RequestBody TopicUpdateReqDTO requestParam,
         @RequestAttribute(Const.ATTR_USER_ID) int id) {
-        return utils.messageHandle(() ->
-            topicService.updateTopic(requestParam, id));
+        try {
+            topicService.updateTopic(requestParam, id);
+        } catch (ServiceException e) {
+            return RestBean.failure(400, e.getMessage());
+        }
+        return RestBean.success();
     }
 
     @PostMapping("/add-comment")
@@ -134,8 +139,12 @@ public class ForumController {
         if (account.isMute()) {
             return RestBean.failure(400, "您的账户已被禁言，无法发布新的回复!");
         }
-        return utils.messageHandle(() ->
-            topicService.addComment(id, requestParam));
+        try {
+            topicService.addComment(id, requestParam);
+        } catch (ServiceException e) {
+            return RestBean.failure(400, e.getMessage());
+        }
+        return RestBean.success();
     }
 
     @GetMapping("/comments")
@@ -168,5 +177,10 @@ public class ForumController {
     @GetMapping("/hot-topics")
     public RestBean<List<HotTopicRespDTO>> hotTopics() {
         return RestBean.success(topicService.hotTopics());
+    }
+
+    @PostMapping("/search-topics")
+    public RestBean<List<TopicPreviewRespDTO>> searchTopicsByTitle(@Valid @RequestBody TopicSearchReqDTO searchReq) {
+        return RestBean.success(topicService.searchTopicsByTitle(searchReq));
     }
 }
