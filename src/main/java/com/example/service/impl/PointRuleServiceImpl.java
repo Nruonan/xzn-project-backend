@@ -32,6 +32,12 @@ public class PointRuleServiceImpl extends ServiceImpl<PointRuleMapper, PointRule
             return false;
         }
         
+        // 检查总规则数量是否超过4个
+        long ruleCount = this.count();
+        if (ruleCount >= 4) {
+            return false;
+        }
+        
         PointRuleDO rule = new PointRuleDO();
         BeanUtils.copyProperties(reqDTO, rule);
         rule.setCreateTime(LocalDateTime.now());

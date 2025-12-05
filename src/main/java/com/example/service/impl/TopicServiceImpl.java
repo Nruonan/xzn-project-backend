@@ -39,10 +39,9 @@ import com.example.service.TopicService;
 import com.example.utils.CacheUtils;
 import com.example.utils.Const;
 import com.example.utils.FlowUtils;
+import com.example.annotation.PointOperation;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -130,12 +129,13 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicDO> implemen
      * 创建帖子
      */
     @Override
-    public String createTopic(TopicCreateReqDTO requestParam, int uid) {
+    @PointOperation(value = "post", idParam = "requestParam", checkBefore = true)
+    public Integer createTopic(TopicCreateReqDTO requestParam, int uid) {
         if (!this.textLimitCheck(requestParam.getContent(),20000)) {
-            return "文章内容太多，发文失败！";
+            throw new ServiceException("文章内容太多，发文失败！");
         }
         if (!types.contains(requestParam.getType())) {
-            return "文章类型非法";
+            throw new ServiceException("文章类型非法");
         }
         TopicDO topic = BeanUtil.toBean(requestParam, TopicDO.class);
         topic.setContent(requestParam.getContent().toJSONString());
@@ -158,9 +158,10 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicDO> implemen
                 },
                 correlationData
             );
-            return null;
+            // 返回创建的帖子ID
+            return topic.getId();
         }else{
-            return "内部错误，请联系管理员!";
+            throw new ServiceException("发文失败，请联系管理员!");
         }
     }
     @Override
@@ -316,6 +317,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicDO> implemen
         });
 
     @Override
+    @PointOperation(value = "interact", idParam = "interact", checkBefore = true)
     public String interact(Interact interact, boolean state) {
         try {
             // 1. 检查限流（保持原有逻辑）
@@ -553,6 +555,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, TopicDO> implemen
      * @param uid 评论用户id
      */
     @Override
+    @PointOperation(value = "comment", idParam = "requestParam", checkBefore = true)
     public String addComment(int uid, AddCommentReqDTO requestParam) {
         String key = Const.FORUM_TOPIC_COMMENT_COUNTER + uid;
         // 检验内容

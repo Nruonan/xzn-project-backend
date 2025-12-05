@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.controller.exception.ServiceException;
 import com.example.entity.RestBean;
 import com.example.entity.dao.Interact;
 import com.example.entity.dao.TopicDO;
@@ -76,8 +77,12 @@ public class ForumController {
         if (account.isMute()) {
             return RestBean.failure(400, "您的账户已被禁言，无法发布新的主题!");
         }
-        return utils.messageHandle(() ->
-            topicService.createTopic(requestParam, id));
+        try {
+            topicService.createTopic(requestParam, id);
+        } catch (ServiceException e) {
+            return RestBean.failure(400, e.getMessage());
+        }
+        return RestBean.success();
     }
 
     @GetMapping("/list-topic")

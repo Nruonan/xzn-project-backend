@@ -6,6 +6,7 @@ import com.example.entity.dao.Interact;
 import com.example.entity.dao.TopicDO;
 import com.example.entity.dto.req.AddCommentReqDTO;
 import com.example.entity.dto.req.TopicCreateReqDTO;
+import com.example.entity.dto.req.TopicSearchReqDTO;
 import com.example.entity.dto.req.TopicUpdateReqDTO;
 import com.example.entity.dto.resp.CommentRespDTO;
 import com.example.entity.dto.resp.HotTopicRespDTO;
@@ -26,12 +27,11 @@ import java.util.List;
 public interface TopicService  extends IService<TopicDO> {
     List<TopicTypeRespDTO> listTypes();
 
-    String createTopic(TopicCreateReqDTO requestParam, int id);
+    Integer createTopic(TopicCreateReqDTO requestParam, int id);
 
     List<TopicPreviewRespDTO> listTopicByPage(int page, int type);
 
     TopicDetailRespDTO getTopic(int id, int uid);
-
 
     List<TopTopicRespDTO> listTopTopics();
 
@@ -54,4 +54,11 @@ public interface TopicService  extends IService<TopicDO> {
     String deleteDraft(int id, int uid);
 
     List<HotTopicRespDTO> hotTopics();
+    
+    /**
+     * 根据标题搜索帖子，并将结果存储到Redis
+     * @param searchReq 搜索请求参数
+     * @return 搜索结果列表
+     */
+    List<TopicPreviewRespDTO> searchTopicsByTitle(TopicSearchReqDTO searchReq);
 }

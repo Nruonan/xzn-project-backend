@@ -2,6 +2,7 @@ package com.example.controller.admin;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.RestBean;
+import com.example.entity.dao.PointRuleDO;
 import com.example.entity.dto.req.PointOrderCreateReqDTO;
 import com.example.entity.dto.req.PointProductCreateReqDTO;
 import com.example.entity.dto.req.PointProductUpdateReqDTO;
@@ -145,7 +146,16 @@ public class PointAdminController {
     @PostMapping("/rule/create")
     public RestBean<Boolean> createRule(@RequestBody PointRuleCreateReqDTO reqDTO,
         @RequestAttribute(Const.ATTR_USER_ID) int id) {
-        return RestBean.success(pointRuleService.createRule(reqDTO, id));
+        boolean result = pointRuleService.createRule(reqDTO, id);
+        if (!result) {
+            // 检查是否是类型重复的问题
+            if (pointRuleService.getRuleByType(reqDTO.getType()) != null) {
+                return RestBean.failure(400, "该类型的积分规则已存在");
+            }
+            // 检查是否是规则数量超限的问题
+            return RestBean.failure(400, "积分规则总数不能超过4个");
+        }
+        return RestBean.success(true);
     }
 
     /**
@@ -153,7 +163,21 @@ public class PointAdminController {
      */
     @PostMapping("/rule/update")
     public RestBean<Boolean> updateRule(@RequestBody PointRuleUpdateReqDTO reqDTO) {
-        return RestBean.success(pointRuleService.updateRule(reqDTO));
+        boolean result = pointRuleService.updateRule(reqDTO);
+        if (!result) {
+            // 检查是否是规则不存在的问题
+            if (pointRuleService.getById(reqDTO.getId()) == null) {
+                return RestBean.failure(404, "积分规则不存在");
+            }
+            // 检查是否是类型重复的问题
+            if (reqDTO.getType() != null && !reqDTO.getType().isEmpty()) {
+                PointRuleDO existingRule = pointRuleService.getRuleByType(reqDTO.getType());
+                if (existingRule != null && !existingRule.getId().equals(reqDTO.getId())) {
+                    return RestBean.failure(400, "该类型的积分规则已存在");
+                }
+            }
+        }
+        return RestBean.success(true);
     }
 
     /**
