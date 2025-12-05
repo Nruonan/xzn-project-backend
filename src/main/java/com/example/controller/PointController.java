@@ -7,11 +7,14 @@ import com.example.entity.dto.req.PointOrderCreateReqDTO;
 import com.example.entity.dto.resp.PointLogRespDTO;
 import com.example.entity.dto.resp.PointOrderRespDTO;
 import com.example.entity.dto.resp.PointProductRespDTO;
+import com.example.entity.dto.resp.UserPointRuleStatusRespDTO;
 import com.example.service.PointLogService;
 import com.example.service.PointOrderService;
 import com.example.service.PointProductService;
+import com.example.service.PointRuleService;
 import com.example.utils.Const;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +36,8 @@ public class PointController {
     
     @Autowired
     private PointProductService pointProductService;
-    
+    @Resource
+    private PointRuleService pointRuleService;
     // ==================== 积分明细 ====================
     
     /**
@@ -53,6 +57,12 @@ public class PointController {
     @Operation(summary = "获取当前用户的积分")
     public RestBean<Integer> getMyPoint(@RequestAttribute(Const.ATTR_USER_ID) Integer uid) {
         return RestBean.success(pointLogService.getUserPoint(uid));
+    }
+    
+    @GetMapping("/rule/have-point")
+    @Operation(summary = "获取当前用户的每天可获得积分")
+    public RestBean<UserPointRuleStatusRespDTO> getUserPointRuleStatus(@RequestAttribute(Const.ATTR_USER_ID) Integer uid) {
+        return RestBean.success(pointRuleService.getUserPointRuleStatus(uid));
     }
     // ==================== 积分订单 ====================
     

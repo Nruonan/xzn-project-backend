@@ -6,6 +6,7 @@ import com.example.entity.dao.PointRuleDO;
 import com.example.entity.dto.req.PointRuleCreateReqDTO;
 import com.example.entity.dto.req.PointRuleUpdateReqDTO;
 import com.example.entity.dto.resp.PointRuleRespDTO;
+import com.example.entity.dto.resp.UserPointRuleStatusRespDTO;
 
 /**
  * 积分规则Service接口
@@ -57,4 +58,11 @@ public interface PointRuleService extends IService<PointRuleDO> {
      * @return 积分规则
      */
     PointRuleDO getRuleByType(String type);
+    
+    /**
+     * 获取用户积分规则完成情况
+     * @param uid 用户ID
+     * @return 用户积分规则完成情况
+     */
+    UserPointRuleStatusRespDTO getUserPointRuleStatus(Integer uid);
 }
