@@ -1,6 +1,6 @@
 
 
-package com.example.controller.exception;
+package com.example.config.exception;
 
 /**
  * 平台错误码｜定义错误码抽象接口，由各错误码类实现接口方法

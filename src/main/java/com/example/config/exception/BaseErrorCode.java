@@ -1,5 +1,5 @@
 
-package com.example.controller.exception;
+package com.example.config.exception;
 
 /**
  * 基础错误码定义｜由组件包抽象基础错误码，不用每个服务引入后再定义相同内容

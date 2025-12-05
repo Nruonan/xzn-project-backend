@@ -1,8 +1,7 @@
-package com.example.controller;
+package com.example.controller.user;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.example.controller.exception.ServiceException;
+import com.example.config.exception.ServiceException;
 import com.example.entity.RestBean;
 import com.example.entity.dao.Interact;
 import com.example.entity.dao.TopicDO;

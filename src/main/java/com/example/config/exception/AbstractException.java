@@ -32,7 +32,7 @@
  * 本软件受到[山东流年网络科技有限公司]及其许可人的版权保护。
  */
 
-package com.example.controller.exception;
+package com.example.config.exception;
 
 
 import java.util.Optional;

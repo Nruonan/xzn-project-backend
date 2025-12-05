@@ -1,4 +1,4 @@
-package com.example.controller;
+package com.example.controller.user;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.entity.RestBean;

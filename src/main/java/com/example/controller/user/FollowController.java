@@ -1,4 +1,4 @@
-package com.example.controller;
+package com.example.controller.user;
 
 
 import com.example.config.user.UserContext;

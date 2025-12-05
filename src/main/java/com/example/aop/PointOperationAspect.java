@@ -1,9 +1,6 @@
-package com.example.aspect;
+package com.example.aop;
 
-import cn.hutool.core.bean.BeanUtil;
-import com.example.annotation.PointOperation;
 import com.example.config.user.UserContext;
-import com.example.entity.dao.TopicDO;
 import com.example.service.PointService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -12,7 +9,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;

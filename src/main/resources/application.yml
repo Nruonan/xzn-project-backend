@@ -6,7 +6,7 @@ spring:
     methods: '*'
    flow:
     period: 3
-    limit: 500
+    limit: 4000
     block: 30
   mail:
     password: BEAGDULMBXDYOGGO
@@ -23,11 +23,11 @@ spring:
             starttls:
               enable: true
   rabbitmq:
-    host: 129.204.155.72
+    addresses: 42.194.242.94
+    port: 15672
     username: xzn
     password: Nruonan996
     virtual-host: /
-    port: 5672
     # 开启生产者确认机制 (新版本配置)
     publisher-confirm-type: correlated
     # 开启消息回退（无法路由到队列时触发）
@@ -43,9 +43,10 @@ spring:
           multiplier: 2 #间隔时间乘子，间隔时间*乘子=下一次的间隔时间，最大不能超过设置的最大间隔时间
   data:
     redis:
+      host: 42.194.242.94
       port: 6379
-      password: Nruonan996
-      host: 129.204.155.72
+      username: default
+      password: nruonan
   security:
     jwt:
      expire: 24
@@ -58,19 +59,17 @@ spring:
       order: -100
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://129.204.155.72:3306/monitor?useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true&allowMultiQueries=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    url: jdbc:mysql://localhost:3306/monitor
+    url: jdbc:mysql://42.194.242.94:13306/monitor?useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true&allowMultiQueries=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+#    url: jdbc:mysql://localhost:3306/monitor
     username: root
-    password: feiwu #zzh2002
+    password: nruonan
   minio:
-    endpoint: 'http://129.204.155.72:9000'
-    username: 'minio'
-    password: 'feiwu996'
+    endpoint: 'http://42.194.242.94:9000'
+    username: 'minioadmin'
+    password: 'minioadmin'
   weather:
     key: 7554413210914257a74e8a1fddc1931f
 server:
   port: 8081
-#  ssl:
-#    certificate: classpath:crt.pem
-#    certificate-private-key: classpath:key.key
-#    trust-certificate: classpath:crt.pem
+
+

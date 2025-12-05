@@ -1,4 +1,4 @@
-package com.example.controller;
+package com.example.controller.user;
 
 import com.example.entity.RestBean;
 import com.example.service.ImageService;

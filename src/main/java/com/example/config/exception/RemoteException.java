@@ -1,4 +1,4 @@
-package com.example.controller.exception;
+package com.example.config.exception;
 
 /**
  * 远程服务调用异常｜比如订单调用支付失败，向上抛出的异常应该是远程服务调用异常

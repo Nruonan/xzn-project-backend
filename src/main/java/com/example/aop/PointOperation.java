@@ -1,4 +1,4 @@
-package com.example.annotation;
+package com.example.aop;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

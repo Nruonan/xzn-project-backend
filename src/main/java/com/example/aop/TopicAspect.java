@@ -1,6 +1,6 @@
-package com.example.filter.aop;
+package com.example.aop;
 
-import com.example.controller.exception.ServiceException;
+import com.example.config.exception.ServiceException;
 import com.example.entity.dto.req.AddCommentReqDTO;
 import com.example.entity.dto.req.TopicCreateReqDTO;
 import com.example.entity.dto.req.TopicUpdateReqDTO;

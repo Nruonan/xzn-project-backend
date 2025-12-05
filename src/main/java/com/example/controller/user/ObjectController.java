@@ -1,4 +1,4 @@
-package com.example.controller;
+package com.example.controller.user;
 
 import com.example.entity.RestBean;
 import com.example.entity.dto.resp.BrowserRespDTO;

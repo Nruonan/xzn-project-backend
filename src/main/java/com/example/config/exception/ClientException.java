@@ -1,5 +1,5 @@
 
-package com.example.controller.exception;
+package com.example.config.exception;
 
 
 
