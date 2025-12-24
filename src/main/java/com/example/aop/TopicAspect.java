@@ -26,7 +26,7 @@ public class TopicAspect {
         "黄色", "叼嘿", "做爱","操逼","sb","操你","看胸", // 色情相关
         "色情", "淫荡", "嫖娼", "性行为", "露点", "约炮", // 进一步的色情相关
         "蠢货", "傻瓜", "下贱", "垃圾", "痴呆", "变态", // 侮辱和攻击
-        "种族歧视词", "性别歧视词", // 俩个类别为例
+        "种族", "性别", "共产党","国民党",// 俩个类别为例
         "贩毒", "诈骗", "杀人", "强奸", // 违法相关
         "恐怖", "恐慌", "暴力",  "凶杀", // 其他敏感词
         "原神"
@@ -51,9 +51,9 @@ public class TopicAspect {
             throw new ServiceException("发文频繁,请稍后再试");
         }
         // 实现审核逻辑
-//        if (isContentValid(String.valueOf(requestParam.getContent())) || isContentValid(requestParam.getTitle())) {
-//            throw new ServiceException("帖子内容包含敏感词，无法发布");
-//        }
+        if (isContentValid(String.valueOf(requestParam.getContent())) || isContentValid(requestParam.getTitle())) {
+            throw new ServiceException("帖子内容包含敏感词，无法发布");
+        }
 
         // 继续执行原始方法
         return joinPoint.proceed();
@@ -71,9 +71,9 @@ public class TopicAspect {
             throw new ServiceException("修改频繁,请稍后再试");
         }
         // 实现审核逻辑
-//        if (isContentValid(String.valueOf(requestParam.getContent())) || isContentValid(requestParam.getTitle())) {
-//            throw new ServiceException("帖子内容包含敏感词，无法发布");
-//        }
+        if (isContentValid(String.valueOf(requestParam.getContent())) || isContentValid(requestParam.getTitle())) {
+            throw new ServiceException("帖子内容包含敏感词，无法发布");
+        }
 
         // 继续执行原始方法
         return joinPoint.proceed();
@@ -89,16 +89,21 @@ public class TopicAspect {
             throw new ServiceException("评论频繁,请稍后再试");
         }
         // 实现审核逻辑
-//        if (isContentValid(String.valueOf(requestParam.getContent()))) {
-//            throw new ServiceException("评论内容包含敏感词，无法发布");
-//        }
+        if (isContentValid(String.valueOf(requestParam.getContent()))) {
+            throw new ServiceException("评论内容包含敏感词，无法发布");
+        }
         // 继续执行原始方法
         return joinPoint.proceed();
     }
     public boolean isContentValid(String content) {
-        if(SensitiveWordHelper.contains(content)){
-            return true;
+        if(content == null) return false;
+        for(String word : SENSITIVE_WORDS){
+            if(content.contains(word)){
+                return true;
+            }
         }
         return false;
     }
+
+
 }

@@ -24,5 +24,5 @@ public class TopicDO{
     private Integer top;
     private Date time;
     private Long score;
-    private Integer status; // 0 表示草稿，1 表示已发布
+    private Integer status; // 0 表示草稿，1 表示已发布 2 禁用
 }
